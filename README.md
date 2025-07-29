@@ -8,6 +8,7 @@ A simple web application for I-Ching divination using Python and HTML.
 1. Install `uv` (package manager).
 2. Create a virtual environment: `uv venv`.
 3. Install dependencies: `uv pip install -r requirements.txt`.
+4. Activate virtual environment: `source .venv/bin/activate`.
 4. Run the server: `python app.py`.
 
 ### Docker Setup
