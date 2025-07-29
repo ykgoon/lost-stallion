@@ -1,6 +1,6 @@
-# I-Ching Web Application
+# 周易動爻
 
-A simple web application for I-Ching divination using Python and HTML.
+A simple web application for I-Ching divination.
 
 ## Setup
 
@@ -13,15 +13,14 @@ A simple web application for I-Ching divination using Python and HTML.
 
 ### Docker Setup
 1. Build the image: `docker compose build`.
-2. Run the service: `docker compose up`.
+2. Run the service: `docker compose up -d`.
 
 ## Usage
-- Access the app at `http://localhost:4732`.
+- Access the app at `http://<ip-address>:4732`.
 - The root endpoint (`/`) generates a random hexagram and redirects to its details page.
 
 ## Dependencies
-- Python 3.12
-- `iching` package
+- Python 3.10
 - Docker (optional)
 
 ## Troubleshooting
