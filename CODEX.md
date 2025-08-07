@@ -1,0 +1,1 @@
+- Reference and implementation of `Iching` class is in https://github.com/kentang2017/ichingshifa/raw/refs/heads/master/ichingshifa/ichingshifa.py. Use `curl` to get its content.
