@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  iching-web:
+  web:
     build: .
     ports:
       - "4732:4732"
