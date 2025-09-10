@@ -1,104 +1,160 @@
 import os
-import random
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
-from ichingshifa.ichingshifa import Iching
+import json
+import uuid
+import sqlite3
+from datetime import datetime
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, abort
+import requests
+from story_generator import get_random_hexagram, map_trigram, select_seed_words
 
-TRIGRAM_SYMBOLS = {
-    '乾': '☰',
-    '兌': '☱',
-    '離': '☲',
-    '震': '☳',
-    '巽': '☴',
-    '坎': '☵',
-    '艮': '☶',
-    '坤': '☷'
-}
+# Load environment variables
+load_dotenv()
 
-def map_trigram(digits):
-    """Map a 3-digit sequence to a trigram name."""
-    # Convert each digit to yin (0) or yang (1):
-    # 6 = old yin, 7 = young yang, 8 = young yin, 9 = old yang
-    # For trigram identification, we care about yin/yang regardless of age
-    binary = ''.join(['1' if d in '79' else '0' for d in digits])
+app = Flask(__name__)
 
-    # Map binary representation to trigram names
-    trigram_map = {
-        '111': '乾',  # Heaven
-        '110': '兌',  # Lake
-        '101': '離',  # Fire
-        '100': '震',  # Thunder
-        '011': '巽',  # Wind
-        '010': '坎',  # Water
-        '001': '艮',  # Mountain
-        '000': '坤'   # Earth
+def generate_story_with_llm(upper_hexagram, lower_hexagram, seed_words):
+    """Generate a story using an LLM API."""
+    # Create the prompt
+    prompt = f"Generate a three-line short story. Each line makes an act of a three-act story; begin, middle and end. Each line must have exactly six words. The story should be inspired by the hexagrams '{upper_hexagram}' and '{lower_hexagram}', and the following themes: {'; '.join(seed_words)}. Do not write anything else other than the story."
+
+    # Get API configuration from environment variables
+    api_key = os.getenv('OPENAI_API_KEY')
+    api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
+    model = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+
+    # Check if API key is provided
+    if not api_key:
+        return "Error: OPENAI_API_KEY not set in environment variables."
+
+    # Prepare the API request
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
     }
-    return trigram_map.get(binary, '未知')
 
-class IChingHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        parsed_path = urlparse(self.path)
-        path = parsed_path.path
-        iching = Iching()
+    data = {
+        'model': model,
+        'messages': [
+            {'role': 'user', 'content': prompt}
+        ],
+        'temperature': 1.8,
+        'max_tokens': 150,
+        'stream': False
+    }
 
-        if path == '/':
-            # Generate a random hexagram (6-digit number)
-            hexagram = iching.bookgua()
-            self.send_response(302)
-            self.send_header('Location', f'/{hexagram}')
-            self.end_headers()
+    try:
+        # Make the API request
+        response = requests.post(f'{api_base}/chat/completions', headers=headers, json=data)
+        response.raise_for_status()
 
-        elif path.startswith('/') and len(path) == 7 and path[1:].isdigit():
-            # Display hexagram details
-            hexagram_number = path[1:]
-            try:
-                result = iching.mget_bookgua_details(hexagram_number)
+        # Extract the story from the response
+        result = response.json()
+        story = result['choices'][0]['message']['content'].strip()
+        return story
+    except Exception as e:
+        return f"Error generating story: {str(e)}"
 
-                # Split hexagram into upper and lower trigrams
-                lower_digits = hexagram_number[0:3]
-                upper_digits = hexagram_number[3:6]
-                lower_trigram_name = map_trigram(lower_digits)
-                upper_trigram_name = map_trigram(upper_digits)
+def get_db_connection():
+    """Create a database connection."""
+    conn = sqlite3.connect('data/db.sqlite')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-                # Get symbols for trigrams
-                lower_trigram_symbol = TRIGRAM_SYMBOLS.get(
-                    lower_trigram_name, '')
-                upper_trigram_symbol = TRIGRAM_SYMBOLS.get(
-                    upper_trigram_name, '')
+def init_db():
+    """Initialize the database with the stories table."""
+    conn = get_db_connection()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS stories (
+            id TEXT PRIMARY KEY,
+            story_text TEXT NOT NULL,
+            upper_hexagram TEXT NOT NULL,
+            lower_hexagram TEXT NOT NULL,
+            seed_words TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-                explanation = result[4]
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.end_headers()
-                with open('templates/hexagram.html',
-                          'r', encoding='utf-8') as f:
-                    template = f.read()
-                judgment = ''.join(f'<p>{item}</p>' for item in explanation)
-                self.wfile.write(template.format(
-                    hexagram=result[1],
-                    judgment=judgment,
-                    lower_trigram_name=lower_trigram_name,
-                    lower_trigram_symbol=lower_trigram_symbol,
-                    upper_trigram_name=upper_trigram_name,
-                    upper_trigram_symbol=upper_trigram_symbol,
-                ).encode('utf-8'))
+def save_story(story_text, upper_hexagram, lower_hexagram, seed_words):
+    """Save a story to the database."""
+    story_id = str(uuid.uuid4())
+    conn = get_db_connection()
 
-            except Exception as e:
-                self.send_response(400)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.end_headers()
-                self.wfile.write('無效的卦號'.encode('utf-8'))
-        else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/html; charset=utf-8')
-            self.end_headers()
-            self.wfile.write('頁面未找到'.encode('utf-8'))
+    try:
+        conn.execute('''
+            INSERT INTO stories (id, story_text, upper_hexagram, lower_hexagram, seed_words)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (story_id, story_text, upper_hexagram, lower_hexagram, json.dumps(seed_words)))
+        conn.commit()
+        return story_id
+    except Exception as e:
+        raise e
+    finally:
+        conn.close()
 
-def run(server_class=HTTPServer, handler_class=IChingHandler, port=4732):
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    print(f'Server running on port {port}...')
-    httpd.serve_forever()
+def get_stories():
+    """Retrieve all stories from the database, ordered by creation date (newest first)."""
+    conn = get_db_connection()
+    stories = conn.execute('SELECT * FROM stories ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return stories
+
+def get_story_by_id(story_id):
+    """Retrieve a specific story by its ID."""
+    conn = get_db_connection()
+    story = conn.execute('SELECT * FROM stories WHERE id = ?', (story_id,)).fetchone()
+    conn.close()
+    return story
+
+@app.route('/')
+def index():
+    """Display a list of all stories."""
+    try:
+        init_db()  # Ensure database is initialized
+        stories = get_stories()
+        return render_template('index.html', stories=stories)
+    except Exception as e:
+        return f"Error loading stories: {str(e)}", 500
+
+@app.route('/generate')
+def generate():
+    """Generate a new story."""
+    try:
+        # Generate hexagram
+        hexagram = get_random_hexagram()
+
+        # Split hexagram into upper and lower trigrams
+        lower_digits = hexagram[0:3]
+        upper_digits = hexagram[3:6]
+        lower_trigram_name = map_trigram(lower_digits)
+        upper_trigram_name = map_trigram(upper_digits)
+
+        # Select seed words from Mythic GME tables
+        seed_words = select_seed_words()
+
+        # Generate story with LLM
+        story_text = generate_story_with_llm(upper_trigram_name, lower_trigram_name, seed_words)
+
+        # Save story to database
+        story_id = save_story(story_text, upper_trigram_name, lower_trigram_name, seed_words)
+
+        # Redirect to the story page
+        return redirect(url_for('story', story_id=story_id))
+    except Exception as e:
+        return f"Error generating story: {str(e)}", 500
+
+@app.route('/s/<story_id>')
+def story(story_id):
+    """Display a specific story."""
+    try:
+        story = get_story_by_id(story_id)
+        if story is None:
+            abort(404)
+        return render_template('story.html', story=story)
+    except Exception as e:
+        return f"Error loading story: {str(e)}", 500
 
 if __name__ == '__main__':
-    run()
+    app.run(host='0.0.0.0', port=4732, debug=True)

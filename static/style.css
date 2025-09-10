@@ -18,10 +18,80 @@ h1, h2 {
     color: #2c3e50;
 }
 
-.judgment, .lines {
+.intro {
     margin: 20px 0;
     padding: 15px;
     background-color: #fff;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.actions {
+    margin: 20px 0;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.stories {
+    margin: 30px 0;
+    text-align: left;
+}
+
+.story-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.story-item {
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.story-item a {
+    text-decoration: none;
+    color: #3498db;
+    flex-grow: 1;
+}
+
+.story-date {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.story {
+    margin: 30px 0;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.story-line {
+    font-size: 1.2em;
+    margin: 10px 0;
+    padding: 10px;
+    border-bottom: 1px dashed #eee;
+}
+
+.story-line:last-child {
+    border-bottom: none;
 }

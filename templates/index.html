@@ -1,15 +1,42 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>易經占卜</title>
+    <title>Stormhaven</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>易經占卜</h1>
-        <p>正在生成卦象，請稍候...</p>
+        <h1>Stormhaven</h1>
+        <div class="intro">
+            <p>What does the cosmos has to say to you?</p>
+        </div>
+        <div class="actions">
+            <a href="/generate" class="btn">New Story</a>
+        </div>
+        <div class="stories">
+            <h2>Previous Stories</h2>
+            {% if stories %}
+                <ul class="story-list">
+                    {% for story in stories %}
+                        <li class="story-item">
+                            <a href="/s/{{ story.id }}">
+                                {% set lines = story.story_text.split('\n') %}
+                                {% if lines %}
+                                    {{ lines[0] }}
+                                {% else %}
+                                    {{ story.story_text }}
+                                {% endif %}
+                            </a>
+                            <span class="story-date">{{ story.created_at }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No stories yet. Get the first story.</p>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>
