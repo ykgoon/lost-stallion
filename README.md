@@ -9,6 +9,19 @@ Stormhaven is a generative fiction tool that creates unique three-line stories i
 - Stores generated stories in an SQLite database
 - Web interface built with Flask
 
+## Project Structure
+The project follows a modular Python structure:
+- `app.py` - Main Flask application
+- `config.py` - Configuration management
+- `models.py` - Database models and operations
+- `generators.py` - Story generation logic
+- `services.py` - External service integrations (LLM API)
+- `utils.py` - Utility functions
+- `data/` - Data files (Mythic GME tables)
+- `static/` - CSS and other static assets
+- `templates/` - HTML templates
+- `tests/` - Unit tests
+
 ## Setup
 
 ### Local Setup
