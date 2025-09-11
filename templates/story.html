@@ -18,7 +18,34 @@
         <div class="actions">
             <a href="/" class="btn">Home</a>
             <a href="/generate" class="btn">Another story</a>
+            <button id="delete-btn" class="btn btn-danger">Delete Story</button>
         </div>
     </div>
+
+    <script>
+        document.getElementById('delete-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
+                const storyId = window.location.pathname.split('/').pop();
+
+                fetch('/s/' + storyId, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.status === 204) {
+                        // Successfully deleted, redirect to home
+                        window.location.href = '/';
+                    } else if (response.status === 404) {
+                        alert('Story not found');
+                    } else {
+                        alert('Error deleting story');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting story');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
