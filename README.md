@@ -1,7 +1,7 @@
-# Stormhaven - Generative Fiction Engine
+# Lost Stallion - Generative Fiction Engine
 
 ## Overview
-Stormhaven is a generative fiction tool that creates unique three-line stories inspired by I-Ching hexagrams and Mythic Game Master Emulator Meaning Tables. Each story is generated using a Large Language Model (LLM) with a creative seed derived from ancient wisdom and random elements.
+Lost Stallion is a generative fiction tool that creates unique three-line stories inspired by I-Ching hexagrams and Mythic Game Master Emulator Meaning Tables. Each story is generated using a Large Language Model (LLM) with a creative seed derived from ancient wisdom and random elements.
 
 ## Features
 - Generates unique three-line stories with exactly six words per line
