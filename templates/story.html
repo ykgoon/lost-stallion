@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stormhaven Story</title>
     <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>Story</h1>
-        <div class="story">
-            {% set lines = story.story_text.split('\n') %}
-            {% for line in lines %}
-                <div class="story-line">{{ line }}</div>
-            {% endfor %}
-        </div>
-        <div class="actions">
-            <a href="/" class="btn">Home</a>
-            <a href="/generate" class="btn">Another story</a>
-            <button id="delete-btn" class="btn btn-danger">Delete</button>
-        </div>
+      <h1>Story</h1>
+      <div class="story">
+        {% set lines = story.story_text.split('\n') %}
+        {% for line in lines %}
+        <div class="story-line">{{ line }}</div>
+        {% endfor %}
+      </div>
+      <div class="actions">
+        <a href="/" class="btn" title="Home">🏠</a>
+        <a href="/generate" class="btn" title="New story">☯️</a>
+        <button id="delete-btn" class="btn btn-danger" title="Delete">🗑</button>
+      </div>
     </div>
 
     <script>

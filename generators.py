@@ -1,18 +1,6 @@
 import random
 import json
 
-# Trigram symbols mapping
-TRIGRAM_SYMBOLS = {
-    '乾': '☰',
-    '兌': '☱',
-    '離': '☲',
-    '震': '☳',
-    '巽': '☴',
-    '坎': '☵',
-    '艮': '☶',
-    '坤': '☷'
-}
-
 def map_trigram(digits):
     """Map a 3-digit sequence to a trigram name."""
     # Convert each digit to yin (0) or yang (1):
